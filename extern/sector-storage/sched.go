@@ -676,7 +676,9 @@ func (sh *scheduler) assignWorker(taskDone chan struct{}, wid WorkerID, w *worke
 
 	//_ = w.w.AddRange(req.ctx, req.taskType, 1)
 	//_ = w.w.AddStore(req.ctx, req.sector, req.taskType)
+	sh.workersLk.Lock()
 	sh.execSectorWorker[req.sector] = w.w.GetWorkerGroup(req.ctx)
+	sh.workersLk.Unlock()
 
 	w.lk.Lock()
 	w.preparing.add(w.info.Resources, needRes)
@@ -850,7 +852,9 @@ func (sh *scheduler) Info(ctx context.Context) (interface{}, error) {
 func (sh *scheduler) delete(sector abi.SectorID) {
 	for sqi, task := range *sh.schedQueue {
 		if sector == task.sector {
+			sh.workersLk.Lock()
 			sh.schedQueue.Remove(sqi)
+			sh.workersLk.Unlock()
 			break
 		}
 	}
